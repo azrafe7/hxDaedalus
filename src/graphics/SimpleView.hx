@@ -41,7 +41,7 @@ class SimpleView
         graphics = drawingContext;
     }
     
-    function drawVertex(vertex : Vertex) : Void
+    public function drawVertex(vertex : Vertex) : Void
 	{
 		graphics.lineStyle(verticesRadius, verticesColor, verticesAlpha);
 		graphics.beginFill(verticesColor, verticesAlpha);
@@ -59,7 +59,7 @@ class SimpleView
 		#end
 	}
 	
-	function drawEdge(edge : Edge) : Void 
+	public function drawEdge(edge : Edge) : Void 
 	{
 		if (edge.isConstrained) 
 		{
