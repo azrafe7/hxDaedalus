@@ -226,231 +226,67 @@ class Mesh
     
     public function insertConstraintSegment(x1 : Float, y1 : Float, x2 : Float, y2 : Float) : ConstraintSegment
     {
-        //Debug.trace("insertConstraintSegment");
-        
-        /* point positions relative to bounds
-        1 | 2 | 3
-        ------------
-        8 | 0 | 4
-        ------------
-        7 | 6 | 5
-        */
-        var p1pos : Int = findPositionFromBounds(x1, y1);
-        var p2pos : Int = findPositionFromBounds(x2, y2);
-        
-        var newX1 : Float = x1;
-        var newY1 : Float = y1;
-        var newX2 : Float = x2;
-        var newY2 : Float = y2;
-        // need clipping if activated and if one end point is outside bounds
-        if (_clipping && (p1pos != 0 || p2pos != 0)) 
-        {
-            var intersectPoint : Point2D = new Point2D();
-            
-            // if both end points are outside bounds
-            if (p1pos != 0 && p2pos != 0) 
-            {
-                // if both end points are on same side
-                if ((x1 <= 0 && x2 <= 0) || (x1 >= _width && x2 >= _width) || (y1 <= 0 && y2 <= 0) || (y1 >= _height && y2 >= _height)) 
-                    return null;  // if end points are in separated left and right areas  ;
-                
-                
-                
-                if ((p1pos == 8 && p2pos == 4) || (p1pos == 4 && p2pos == 8)) 
-                {
-                    // intersection with left bound
-                    Geom2D.intersections2segments(x1, y1, x2, y2, 0, 0, 0, _height, intersectPoint);
-                    newX1 = intersectPoint.x;
-                    newY1 = intersectPoint.y;
-                    // intersection with right bound
-                    Geom2D.intersections2segments(x1, y1, x2, y2, _width, 0, _width, _height, intersectPoint);
-                    newX2 = intersectPoint.x;
-                    newY2 = intersectPoint.y;
-                }
-                // if end points are in separated top and bottom areas
-                else if ((p1pos == 2 && p2pos == 6) || (p1pos == 6 && p2pos == 2)) 
-                {
-                    // intersection with top bound
-                    Geom2D.intersections2segments(x1, y1, x2, y2, 0, 0, _width, 0, intersectPoint);
-                    newX1 = intersectPoint.x;
-                    newY1 = intersectPoint.y;
-                    // intersection with bottom bound
-                    Geom2D.intersections2segments(x1, y1, x2, y2, 0, _height, _width, _height, intersectPoint);
-                    newX2 = intersectPoint.x;
-                    newY2 = intersectPoint.y;
-                }
-                // if ends points are apart of the top-left corner
-                else if ((p1pos == 2 && p2pos == 8) || (p1pos == 8 && p2pos == 2)) 
-                {
-                    // check if intersection with top bound
-                    if (Geom2D.intersections2segments(x1, y1, x2, y2, 0, 0, _width, 0, intersectPoint)) 
-                    {
-                        newX1 = intersectPoint.x;
-                        newY1 = intersectPoint.y;
-                        
-                        // must have intersection with left bound
-                        Geom2D.intersections2segments(x1, y1, x2, y2, 0, 0, 0, _height, intersectPoint);
-                        newX2 = intersectPoint.x;
-                        newY2 = intersectPoint.y;
-                    }
-                    else return null;
-                }
-                // if ends points are apart of the top-right corner
-                else if ((p1pos == 2 && p2pos == 4) || (p1pos == 4 && p2pos == 2)) 
-                {
-                    // check if intersection with top bound
-                    if (Geom2D.intersections2segments(x1, y1, x2, y2, 0, 0, _width, 0, intersectPoint)) 
-                    {
-                        newX1 = intersectPoint.x;
-                        newY1 = intersectPoint.y;
-                        
-                        // must have intersection with right bound
-                        Geom2D.intersections2segments(x1, y1, x2, y2, _width, 0, _width, _height, intersectPoint);
-                        newX2 = intersectPoint.x;
-                        newY2 = intersectPoint.y;
-                    }
-                    else return null;
-                }
-                // if ends points are apart of the bottom-right corner
-                else if ((p1pos == 6 && p2pos == 4) || (p1pos == 4 && p2pos == 6)) 
-                {
-                    // check if intersection with bottom bound
-                    if (Geom2D.intersections2segments(x1, y1, x2, y2, 0, _height, _width, _height, intersectPoint)) 
-                    {
-                        newX1 = intersectPoint.x;
-                        newY1 = intersectPoint.y;
-                        
-                        // must have intersection with right bound
-                        Geom2D.intersections2segments(x1, y1, x2, y2, _width, 0, _width, _height, intersectPoint);
-                        newX2 = intersectPoint.x;
-                        newY2 = intersectPoint.y;
-                    }
-                    else return null;
-                }
-                // if ends points are apart of the bottom-left corner
-                else if ((p1pos == 8 && p2pos == 6) || (p1pos == 6 && p2pos == 8)) 
-                {
-                    // check if intersection with bottom bound
-                    if (Geom2D.intersections2segments(x1, y1, x2, y2, 0, _height, _width, _height, intersectPoint)) 
-                    {
-                        newX1 = intersectPoint.x;
-                        newY1 = intersectPoint.y;
-                        
-                        // must have intersection with left bound
-                        Geom2D.intersections2segments(x1, y1, x2, y2, 0, 0, 0, _height, intersectPoint);
-                        newX2 = intersectPoint.x;
-                        newY2 = intersectPoint.y;
-                    }
-                    else return null;
-                }
-                // other cases (could be optimized)
-                else 
-                {
-                    var firstDone : Bool = false;
-                    var secondDone : Bool = false;
-                    // check top bound
-                    if (Geom2D.intersections2segments(x1, y1, x2, y2, 0, 0, _width, 0, intersectPoint)) 
-                    {
-                        newX1 = intersectPoint.x;
-                        newY1 = intersectPoint.y;
-                        firstDone = true;
-                    }  // check right bound  
-                    
-                    if (Geom2D.intersections2segments(x1, y1, x2, y2, _width, 0, _width, _height, intersectPoint)) 
-                    {
-                        if (!firstDone) 
-                        {
-                            newX1 = intersectPoint.x;
-                            newY1 = intersectPoint.y;
-                            firstDone = true;
-                        }
-                        else 
-                        {
-                            newX2 = intersectPoint.x;
-                            newY2 = intersectPoint.y;
-                            secondDone = true;
-                        }
-                    }  // check bottom bound  
-                    
-                    if (!secondDone && Geom2D.intersections2segments(x1, y1, x2, y2, 0, _height, _width, _height, intersectPoint)) 
-                    {
-                        if (!firstDone) 
-                        {
-                            newX1 = intersectPoint.x;
-                            newY1 = intersectPoint.y;
-                            firstDone = true;
-                        }
-                        else 
-                        {
-                            newX2 = intersectPoint.x;
-                            newY2 = intersectPoint.y;
-                            secondDone = true;
-                        }
-                    }  // check left bound  
-                    
-                    if (!secondDone && Geom2D.intersections2segments(x1, y1, x2, y2, 0, 0, 0, _height, intersectPoint)) {
-                        newX2 = intersectPoint.x;
-                        newY2 = intersectPoint.y;
-                    }
-                    
-                    if (!firstDone) return null;
-                }
-            }
-            // one end point of segment is outside bounds and one is inside
-            else 
-            {
-                // if one point is outside top
-                if (p1pos == 2 || p2pos == 2){
-                    // intersection with top bound
-                    Geom2D.intersections2segments(x1, y1, x2, y2, 0, 0, _width, 0, intersectPoint);
-                }
-                // if one point is outside right
-                else if (p1pos == 4 || p2pos == 4){
-                    // intersection with right bound
-                    Geom2D.intersections2segments(x1, y1, x2, y2, _width, 0, _width, _height, intersectPoint);
-                }
-                // if one point is outside bottom
-                else if (p1pos == 6 || p2pos == 6){
-                    // intersection with bottom bound
-                    Geom2D.intersections2segments(x1, y1, x2, y2, 0, _height, _width, _height, intersectPoint);
-                }
-                // if one point is outside left
-                else if (p1pos == 8 || p2pos == 8){
-                    // intersection with left bound
-                    Geom2D.intersections2segments(x1, y1, x2, y2, 0, 0, 0, _height, intersectPoint);
-                }
-                // other cases (could be optimized)
-                else 
-                {
-                    // check top bound
-                    if (!Geom2D.intersections2segments(x1, y1, x2, y2, 0, 0, _width, 0, intersectPoint)) 
-                    {
-                        // check right bound
-                        if (!Geom2D.intersections2segments(x1, y1, x2, y2, _width, 0, _width, _height, intersectPoint)) 
-                        {
-                            // check bottom bound
-                            if (!Geom2D.intersections2segments(x1, y1, x2, y2, 0, _height, _width, _height, intersectPoint)) 
-                            {
-                                // check left bound
-                                Geom2D.intersections2segments(x1, y1, x2, y2, 0, 0, 0, _height, intersectPoint);
-                            }
-                        }
-                    }
-                }
-                
-                if( p1pos == 0 ) {
-                    newX1 = x1;
-                    newY1 = y1;
-                } else {
-                    newX1 = x2;
-                    newY1 = y2;
-                }
-                newX2 = intersectPoint.x;
-                newY2 = intersectPoint.y;
-            }
-        }  // we check the vertices insertions  
-        
-        
+		// we clip against AABB
+		var newX1 : Float = x1;
+		var newY1 : Float = y1;
+		var newX2 : Float = x2;
+		var newY2 : Float = y2;
+		
+		if ((x1 > _width && x2 > _width)
+			|| (x1 < 0 && x2 < 0)
+			|| (y1 > _height && y2 > _height)
+			|| (y1 < 0 && y2 < 0))
+		{
+			return null;
+		}
+		else
+		{
+			var nx : Float = x2 - x1;
+			var ny : Float = y2 - y1;
+			
+			var tmin : Float = Math.NEGATIVE_INFINITY;
+			var tmax : Float = Math.POSITIVE_INFINITY;
+			
+			if (nx != 0.0)
+			{
+					var tx1 : Float = (0 - x1) / nx;
+					var tx2 : Float = (_width - x1) / nx;
+					
+					tmin = Math.max(tmin, Math.min(tx1, tx2));
+					tmax = Math.min(tmax, Math.max(tx1, tx2));
+			}
+			
+			if (ny != 0.0)
+			{
+				var ty1 : Float = (0 - y1) / ny;
+				var ty2 : Float = (_height - y1) / ny;
+				
+				tmin = Math.max(tmin, Math.min(ty1, ty2));
+				tmax = Math.min(tmax, Math.max(ty1, ty2));
+			}
+			
+			if (tmax >= tmin)
+			{
+				
+				if (tmax < 1)
+				{
+					//Clip end point
+					newX2 = nx*tmax + x1;
+					newY2 = ny*tmax + y1;
+				}
+				
+				if (tmin > 0)
+				{
+					//Clip start point
+					newX1 = nx*tmin + x1;
+					newY1 = ny*tmin + y1;
+				}
+			}
+			else
+				return null;
+		}
+		
+		// we check the vertices insertions  
         
         var vertexDown = insertVertex( newX1, newY1 );
         if( vertexDown == null ) return null;
@@ -1530,32 +1366,6 @@ class Mesh
             }
             
             triangulate(boundM, isReal);
-        }
-    }
-    
-    
-     function findPositionFromBounds(x : Float, y : Float) : Int
-    {
-        /* point positions relative to bounds
-        1 | 2 | 3
-        ------------
-        8 | 0 | 4
-        ------------
-        7 | 6 | 5
-        */
-        
-        if( x <= 0 ) {
-            if( y <= 0 )             return 1
-            else if( y >= _height )  return 7
-            else                     return 8;
-        } else if( x >= _width ) {
-            if( y <= 0 )             return 3
-            else if( y >= _height )  return 5
-            else                     return 4;
-        } else {
-            if( y <= 0 )             return 2
-            else if( y >= _height )  return 6
-            else                     return 0;
         }
     }
     
